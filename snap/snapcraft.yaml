@@ -1,91 +1,38 @@
 name: aqueducts
-base: core22
-version: '1.2.2'
 summary: Explore worlds as you go from learning code fundamentals to Javascript
 description: |
   All the water has disappeared from your village and it's up to you to save the day! Go on an adventure to connect the water pipes and bring water back to your village. Solve puzzles and hack your way through 15 levels of fun and challenging islands. When you're done, build and program your own levels to challenge other players!
-
-grade: stable
+version: '1.2.2'
+base: core22
+architectures:
+- amd64
 confinement: strict
+grade: stable
+
+apps:
+  aqueducts:
+    extensions: [gnome]
+    command: /Aqueducts/Aqueducts.x86_64
+    plugs:
+      - audio-playback
+      - desktop
+      - desktop-legacy
+      - joystick
+      - network
+      - opengl
+      - wayland
+      - x11
 
 parts:
   aqueducts:
-    plugin: dump
     source: https://github.com/endless-network/Aqueducts_Binary/releases/download/v1.2.2/Aqueducts.zip
-    stage-packages:
-      - libgdk-pixbuf2.0-0
-      - libgtk2.0-0
-      - libgl1
-      - libpulse0
+    plugin: dump
+    override-prime: |
+      craftctl default
+      chmod +x $CRAFT_PRIME/Aqueducts/Aqueducts.x86_64
   desktop-files:
     plugin: nil
     source: desktop-file
     override-build: |
       mkdir -p $CRAFT_PART_INSTALL/meta/gui
       cp * $CRAFT_PART_INSTALL/meta/gui
-  alsa-mixin:
-    plugin: dump
-    source: https://github.com/diddlesnaps/snapcraft-alsa.git
-    source-subdir: snapcraft-assets
-    build-packages:
-      - libasound2-dev
-    stage-packages:
-      - libasound2
-      - libasound2-plugins
-      - yad
-    stage:
-      # restrict to only audio-related files - you need to ensure
-      # that gtk3 is staged for yad to work correctly, to prompt
-      # users to connect the alsa plug or proceed with pulseaudio.
-      #
-      # This helps prevent symbol conflicts in situations where
-      # you're using a non-default library, such as those that the
-      # gnome-3-34 extension for core18 provides.
-      - etc/asound.conf
-      - snap/command-chain/alsa-launch
-      - usr/bin/yad*
-      - usr/lib/*/alsa-lib
-      - usr/lib/*/libasound*
-      - usr/lib/*/libasyncns*
-      - usr/lib/*/libdnsfile*
-      - usr/lib/*/libFLAC*
-      - usr/lib/*/libjack*
-      - usr/lib/*/libpulse*
-      - usr/lib/*/libsamplerate*
-      - usr/lib/*/libsndfile*
-      - usr/lib/*/libspeex*
-      - usr/lib/*/libvorbis*
-      - usr/lib/*/pulseaudio
-      - usr/share/alsa
-      
-layout:
-  /usr/lib/x86_64-linux-gnu/dri:
-    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/dri
-  /usr/share/alsa:
-    bind: $SNAP/usr/share/alsa
-  /etc/alsa/conf.d:
-    bind: $SNAP/etc/alsa/conf.d
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib:
-    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib
-  /etc/host.conf:
-    bind-file: $SNAP/etc/host.conf
-  /var/lib/alsa/conf.d:
-    bind: $SNAP/var/lib/alsa/conf.d
-  /usr/etc/alsa/conf.d:
-    bind: $SNAP/usr/etc/alsa/conf.d
-    
-environment:
-  LD_LIBRARY_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-    
-apps:
-  aqueducts:
-    command: snap/command-chain/alsa-launch $SNAP/Aqueducts/Aqueducts.x86_64
-    plugs:
-      - desktop
-      - desktop-legacy
-      - wayland
-      - x11
-      - opengl
-      - audio-playback
-      - screen-inhibit-control
-      - pulseaudio
